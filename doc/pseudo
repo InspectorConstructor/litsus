@@ -1,0 +1,16 @@
+general flow
+===============
+
+ - user visits page -
+
+client establishes websocket connection with server
+client sends hello with mac address.
+
+server receives hello, assigns the client an ID, and sends client that ID.
+
+
+ - client behavior
+
+
+ - server main -
+reply to incoming hellos with unique ID's, and store mac to id relations.
