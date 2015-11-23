@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>ADMIN (SUS or LIT)</title>
+    <!-- script libraries -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- application script -->
+    <script>
+
+      // define callbacks for socket event(s) //
+      var  current_track='',
+           websocket_server_address='http://localhost:4228',
+           limiter={
+              limit: function(){}
+           };
+
+      /***
+        sus/lit votes object: (not final)
+
+          pos: integer between -100 and 100, inclusive. represents the weight of all current votes in room.
+          num: positive integer. represents the total number of votes.
+
+      ***/
+
+      // updates the votes meter based on the update message from server.
+      function update_votes(data)
+      {
+          //todo
+          $('#votes_div').text(data.pos.toString());
+      }
+
+      function do_reset(){
+          socket.emit('reset');
+      }
+
+      function do_send_text(){
+          socket.emit('title', $('#song_name').val());
+      }
+
+      function do_disable(){
+          socket.emit('disable');
+      }
+
+      function do_enable(){
+          socket.emit('enable');
+      }
+
+      // function to send a vote to the server.
+      function vote(sus_or_lit)
+      {
+          if (sus_or_lit === 'sus' || sus_or_lit === 'lit')
+              socket.emit('vote', {id: my_id, its: sus_or_lit});
+          else
+              console.warn("unexpected vote cast:", sus_or_lit);
+      }
+
+      // set up our socket //
+
+      var socket = io(websocket_server_address);
+
+      // set some callbacks for the socket.
+      socket.on('init', function (data) {
+          console.log('got init!! server state follows:');
+          console.log(data);
+          socket.emit('ok');
+      });
+
+      socket.on('votes', function (data) { // receive current voting status
+          console.log('Got vote status:');
+          console.log(data);
+          update_votes(data);
+      });
+
+
+      // jquery's on-ready function thinger: runs the anonymous function when 
+      // the page's DOM has been initialized and readied.
+      $(function(){
+          $('#send_text_btn').click(function(){
+              console.log('send_text pressed');
+              do_send_text();
+          });
+          $('#enable_btn').click(function(){
+              console.log('enable pressed');
+              do_enable();
+          });
+          $('#disable_btn').click(function(){
+              console.log('disable pressed');
+              do_disable();
+          });
+          $('#reset_btn').click(function(){
+              console.log('reset pressed');
+              do_reset();
+          });
+      });
+
+    </script>
+  </head>
+  <body>
+    <h1>Admin Demo</h1>
+    <h2>fukyeah</h2>
+    <p>swiggity swooty gonna administrate that booty</p>
+    <div id="buttons_div">
+      <input type="text" id="song_name">
+      <button id="send_text_btn">UPDATE TRACK TEXT</button>
+      <button id="enable_btn">ENABLE VOTING</button>
+      <button id="disable_btn">DISABLE VOTING</button>
+      <button id="reset_btn">RESET SCORE</button>
+    </div>
+    <div id="votes_div">
+      votes will show up here maybe!
+    </div>
+  </body>
+</html>

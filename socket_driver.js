@@ -53,6 +53,12 @@
           socket.emit('my other event', { my: 'balls' });
       });
 
+      socket.on('title', function (data) { // receive new song title
+          console.log('got new title');
+          console.log(data);
+	  $('#song_title').text(data);
+      });
+
       socket.on('votes', function (data) { // receive current voting status
           console.log('Got vote status:');
           console.log(data);
