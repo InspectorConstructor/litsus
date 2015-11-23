@@ -2,7 +2,7 @@
 // the complete litsus server
 // runs the crowd app and control app backends
 // based on example code from socket.io website
-;
+;console.log('starting up...');
 // declarations
 var fs = require('fs'), // filesystem
     crowd = {}, // crowd is an object that contains the crowd app stuff
@@ -17,17 +17,19 @@ var fs = require('fs'), // filesystem
     _id = 0,
     state = "enabled",
     vote_timeout_ms = 3000,
-    current_title = '';
+    current_title = '',
+    admin_port_num = 4808,
+    crowd_port_num = 4220;
 
 // crowd application
 crowd.app = require('http').createServer(crowd_handler);
 crowd.io = require('socket.io')(crowd.app);
-crowd.app.listen(4220);
+crowd.app.listen(crowd_port_num);
 
 // control application
 control.app = require('http').createServer(control_handler);
 control.io = require('socket.io')(control.app);
-control.app.listen(4228);
+control.app.listen(admin_port_num);
 
 // http server request handler for crowd app
 function crowd_handler (req, res) {
@@ -221,5 +223,13 @@ function update_song_title(title)
 
 // timer to broadcast votes to all clients
 setInterval(function(){broadcast_votes();}, 2500); //ms
+
+(function(){
+    console.log("SUS/LIT voting server is alive.");
+    console.log("Crowd app is on port "+crowd_port_num);
+    console.log("Control app is on port "+admin_port_num);
+    console.log("Voting is currently DISABLED.");
+    console.log("Have an admin set a song title and enable voting.");
+})();
 
 ;
