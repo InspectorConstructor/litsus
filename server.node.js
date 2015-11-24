@@ -1,3 +1,4 @@
+#!/usr/local/bin/node
 // server.node.js
 // the complete litsus server
 // runs the crowd app and control app backends
@@ -183,6 +184,7 @@ function handle_vote(socket, data)
 // disable
 function disable()
 {
+    console.log('disabling voting');
 	state = 'disabled';
 	crowd.io.sockets.emit('disable');
 }
@@ -190,6 +192,7 @@ function disable()
 // enable
 function enable()
 {
+    console.log('enabling voting');
 	state = 'enabled';
 	crowd.io.sockets.emit('enable');
 }
@@ -197,6 +200,7 @@ function enable()
 // reset votes, title, and timeout
 function reset()
 {
+    console.log('resetting');
 	votes.sus=votes.lit=0;
 	votes.updated=true;
 	timeouts.length=0; // clear the timeouts array
