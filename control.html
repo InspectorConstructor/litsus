@@ -10,7 +10,9 @@
     <script>
 
       // define callbacks for socket event(s) //
-      var  current_track='',
+      var  state, //todo
+           votes, //todo
+           current_track='',
            websocket_server_address='http://localhost:4228',
            limiter={
               limit: function(){}
@@ -32,18 +34,22 @@
       }
 
       function do_reset(){
+          console.log('sending reset');
           socket.emit('reset');
       }
 
       function do_send_text(){
+          console.log('sending title');
           socket.emit('title', $('#song_name').val());
       }
 
       function do_disable(){
+          console.log('sending disable');
           socket.emit('disable');
       }
 
       function do_enable(){
+          console.log('sending enable');
           socket.emit('enable');
       }
 
@@ -93,7 +99,7 @@
               console.log('reset pressed');
               do_reset();
           });
-      });
+      })();
 
     </script>
   </head>
