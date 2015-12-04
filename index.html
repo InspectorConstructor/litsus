@@ -3,37 +3,138 @@
   <head>
     <meta charset="UTF-8">
     <title>SUS or LIT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- script libraries -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- application scripts -->
     <script src="/socket_driver.js"></script>
+    <link rel="stylesheet" href="css/base-min.css">
+    <link rel="stylesheet" href="css/pure-min.css">
+    <link rel="stylesheet" href="css/grids-responsive-min.css">
     <style>
-     #sus_btn {
-      background-image: url('assets/sus.jpg') no-repeat;
-      background-size:contain;
-      width:200px;
-      height:200px;
-     }
-     #lit_btn {
-      background-image: url('assets/lit.jpg') no-repeat;
-      background-size:contain;
-      width:200px;
-      height:200px;
-     }
-</style>
+      body {
+        /** this gradient: http://colorzilla.com/gradient-editor/#f0c4ba+0,e65958+100 **/
+        background: #f0c4ba; /* Old browsers */
+        background: -moz-radial-gradient(center, ellipse cover, #f0c4ba 0%, #e65958 100%); /* FF3.6-15 */
+        background: -webkit-radial-gradient(center, ellipse cover, #f0c4ba 0%,#e65958 100%); /* Chrome10-25,Safari5.1-6 */
+        background: radial-gradient(ellipse at center, #f0c4ba 0%,#e65958 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0c4ba', endColorstr='#e65958',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+        /** end background gradient **/
+
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      .isitsus {
+        color:white;
+        text-shadow: -2px 2px 1px rgba(72, 72, 72, 1);
+      }
+
+      #song_title {
+        /* todo */
+      }
+
+      #sus_btn {
+        background-image: url('assets/sus.jpg') ;
+        background-size:contain;
+        width:100px;
+        height:100px;
+      }
+
+      #lit_btn {
+        background-image: url('assets/lit.jpg') ;
+        background-size:contain;
+        width:100px;
+        height:100px;
+      }
+
+      .center-chilren {
+        text-align:center;
+      }
+
+      .center-block {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .sus_text {
+        /* todo */
+      }
+
+      .lit_text {
+        /* todo */
+      }
+
+      .bold { font-weight: bold; }
+
+      /** progress bar css hacks from https://css-tricks.com/html5-progress-element/ **/
+
+      /* todo, finish progress bars */
+      progress[value] {
+        /* Reset the default appearance */
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      progress[value]::-webkit-progress-bar {
+        background-color: #eee;
+        border-radius: 2px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+      }
+
+      progress[value]::-webkit-progress-value {
+        background-image:
+         -webkit-linear-gradient(-45deg, 
+                                 transparent 33%, rgba(0, 0, 0, .1) 33%, 
+                                 rgba(0,0, 0, .1) 66%, transparent 66%),
+         -webkit-linear-gradient(top, 
+                                 rgba(255, 255, 255, .25), 
+                                 rgba(0, 0, 0, .25)),
+         -webkit-linear-gradient(left, #09c, #f44);
+
+        border-radius: 2px; 
+        background-size: 35px 20px, 100% 100%, 100% 100%;
+      }
+    </style>
   </head>
-  <body>
-    <h1>working demo</h1>
-    <h2>fuckyes</h2>
-    <p>isn't this just wonderful oh woawie woah</p>
-    <div id="song_title">song title goes here</div>
-    <div id="buttons_div">
-      <button id="sus_btn">SUS</button>
-      <button id="lit_btn">LIT</button>
+  <body><div class="center-chilren ">
+
+    <div class="pure-g isitsus">
+      <div class="pure-u-1">
+	<h1>is it <span class="sus_text">Sus</span> or <span class="lit_text">LIT</span>?</h1>
+      </div>
     </div>
-    <div id="votes_div">
-      votes will show up here maybe!
+
+    <div class="pure-g">
+      <div class="pure-u-1">
+	<p id="song_title">&hearts;&trade;<!-- song title goes here --></p>
+      </div>
     </div>
-  </body>
+
+    <!-- buttons and progress bars -->
+    <div class="pure-g" id="buttons_div">
+      <div class="pure-u-1-2">
+	<button id="sus_btn">SUS</button>
+	<progress max="10" value="0" id="sus_progress"></progress>
+	<p id="sus_count">0</p>
+      </div>
+      <div class="pure-u-1-2">
+	<button id="lit_btn">LIT</button>
+	<progress max="10" value="0" id="lit_progress"></progress>
+	<p id="lit_count">0</p>
+      </div>
+    </div>
+
+    <!-- votes number/meter -->
+    <div class="pure-g" style="display:none;">
+      <div class="pure-u-1-2" id="votes_div">
+	<p>votes will show up here maybe!</p>
+      </div>
+      <div class="pure-u-1-2">
+	<button class="pure-button">button test</button>
+      </div>
+    </div>
+
+  </div></body>
 </html>

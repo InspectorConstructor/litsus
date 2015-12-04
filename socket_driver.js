@@ -10,17 +10,57 @@
 
       /***
         sus/lit votes object: (not final)
+          sus: pos int number of sus votes
+          lit: same as sus, but represents lit
 
-          pos: integer between -100 and 100, inclusive. represents the weight of all current votes in room.
-          num: positive integer. represents the total number of votes.
+        misc stats that can be calculated from above object:
+          pos: integer between -100 and 100, inclusive. represents the weight of all current votes in room. lit - sus
+          num: positive integer. represents the total number of votes. lit + sus
       
       ***/
 
       // updates the votes meter based on the update message from server.
       function update_votes(data)
       {
-          //todo
-          $('#votes_div').text(data.pos.toString());
+          $('#sus_progress').val(data.sus);
+          $('#sus_count').text((data.sus).toString());
+
+          $('#lit_progress').val(data.lit);
+          $('#lit_count').text((data.lit).toString());
+
+
+	  if (data.sus > data.lit)
+	  {
+	      // sus is winning
+	      $('#sus_count').addClass('bold');
+	      $('#lit_count').removeClass('bold');
+	  }
+
+	  if (data.sus < data.lit)
+	  {
+	      // lit is winning
+	      $('#sus_count').removeClass('bold');
+	      $('#lit_count').addClass('bold');
+	  }
+      }
+
+      function disable_voting()
+      {
+	  // TODO disable buttons
+      }
+      function enable_voting()
+      {
+	  // TODO reset progress bars, enable buttons
+      }
+
+      function sus_win()
+      {
+	  // todo
+      }
+
+      function lit_win()
+      {
+	  // todo
       }
 
       // function to send a vote to the server.

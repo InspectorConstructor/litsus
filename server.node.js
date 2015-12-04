@@ -210,8 +210,8 @@ function broadcast_votes()
 {
     if (state === "enabled")
     {
-        crowd.io.sockets.emit('votes', { pos: (votes.lit-votes.sus), 
-		                         num: (votes.lit+votes.sus) });
+        crowd.io.sockets.emit('votes', { sus: votes.sus, 
+		                         lit: votes.lit });
 	votes.updated=false; // reset the update tracker
     }
 }
