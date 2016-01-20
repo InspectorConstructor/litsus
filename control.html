@@ -19,7 +19,15 @@
            websocket_server_address='http://localhost:4228',
            limiter={
               limit: function(){}
-           };
+           },
+
+          win_semantics = {
+              top: 100,
+              top_en: true,
+
+              spread: 60,
+              spread_en: false
+          };
 
       /***
         sus/lit votes object: (not final)
@@ -44,6 +52,17 @@
       function do_send_text(){
           console.log('sending title');
           socket.emit('title', $('#song_name').val());
+      }
+
+      function do_win(){
+          var w;
+          w.top = $('#top').val();
+          w.top_en = $('#top_en').checked();
+          w.spread = $('#spread').val();
+          w.spread_en = $('#spread_en').checked();
+
+          console.log('sending win_semantics object');
+          socket.emit('win_semantics', w);
       }
 
       function do_disable(){
@@ -90,6 +109,10 @@
               console.log('send_text pressed');
               do_send_text();
           });
+          $('#win_btn').click(function(){
+              console.log('win pressed');
+              do_win();
+          });
           $('#enable_btn').click(function(){
               console.log('enable pressed');
               do_enable();
@@ -102,7 +125,9 @@
               console.log('reset pressed');
               do_reset();
           });
-      })();
+      });
+
+// todo sync win conditions from server
 
     </script>
     <style>
@@ -119,6 +144,20 @@
       <button class="pure-button" id="enable_btn">ENABLE VOTING</button>
       <button class="pure-button" id="disable_btn">DISABLE VOTING</button>
       <button class="pure-button" id="reset_btn">RESET SCORE</button>
+    </div>
+<br/>
+    <div>
+      <label for="top_en">Top enable</label>
+      <input type="checkbox" id="top_en" checked>
+      <label for="top">Top vote count</label>
+      <input type="number" min="1" id="top" value="100">
+<br/>
+      <label for="spread_en">Spread enable</label>
+      <input type="checkbox" id="spread_en">
+      <label for="spread">Spread count</label>
+      <input type="number" min="1" id="spread" value="60">
+<br/>
+      <button class="pure-button" id="win_btn">UPDATE WIN SEMANTICS</button>
     </div>
     <div id="votes_div" class="cooper">
       votes will show up here maybe!

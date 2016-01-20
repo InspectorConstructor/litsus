@@ -20,7 +20,24 @@ var fs = require('fs'), // filesystem
     vote_timeout_ms = 3000,
     current_title = '',
     admin_port_num = 4808,
-    crowd_port_num = 4220;
+    crowd_port_num = 4220,
+
+// object that contains our win case values and flags to control win cases.
+// spread is the lead one vote category needs to gain over the other category to win.
+// top is the max value needed to win.
+    win_semantics = {
+        top: 100,
+        top_en: true,
+
+        spread: 60,
+        spread_en: false
+    };
+
+// protect our original object structure
+Object.seal(win_semantics);
+
+// object sealing becaues it sounds cool
+Object.seal(votes);
 
 // crowd application
 crowd.app = require('http').createServer(crowd_handler);
@@ -78,7 +95,7 @@ function map_ip_to_id(ip)
     return id;
 }
 
-// server setup
+// crowd app server setup
 crowd.io.on('connection', function (socket) {
 
 	// get an id for this IP address
@@ -97,6 +114,7 @@ crowd.io.on('connection', function (socket) {
 	    });
     });
 
+// control app server setup
 control.io.on('connection', function (socket) {
 
 	// get an id for this IP address
@@ -107,7 +125,6 @@ control.io.on('connection', function (socket) {
 	socket.on('ok', function (data) {
 		console.log('client at '+ ip +' ready');
 	    });
-
 
 	// refactor, for these 4,  maybe make the event named 'admin', and put the event info in the data?
 	socket.on('reset', function (data) {
@@ -129,7 +146,39 @@ control.io.on('connection', function (socket) {
 		console.log("VOTING DISABLE");
 		disable();
 	    });
+
+	socket.on('WINNER', function (data) { // message to troll everyone and test stuff quickly
+		console.log("force a winner: ", data);
+		WINNER(data);
+	    });
+
+	socket.on('win_semantics', function (data) {
+		console.log("receiced updated win semantics");
+		update_win_semantics();
+	    });
+
+
     });
+
+// I am being overly cautious here for no reason....
+// been writing too much C lately and this all just feels too loose
+function update_win_semantics(win_semantics_obj)
+{
+    if (win_semantics_obj === null || typeof win_semantics_obj !== 'object')
+	{
+	    console.warn("non-object parameter passed to update_win_semantics()");
+	    return;
+	}
+
+    //safely update the values using the server's sealed object.
+    for (var prop in win_semantics)
+	{
+	    if (win_semantics_obj.hasOwnProperty(prop))
+		{
+		    win_semantics[prop] = win_semantics_obj[prop];
+		}
+	}
+}
 
 function set_timeout(ip)
 {
@@ -141,16 +190,44 @@ function set_timeout(ip)
 function WINNER(sus_or_lit)
 { //todo
     console.log('WINNER REACHED');
+
+    //tell clients who won via a winning votes message
+    broadcast_votes(sus_or_lit);
+    // stop counting votes
+    disable();
 }
 
 // check if there's a winner
 function winner_check()
-{ //todo
-    if (false)
+{
+    //spread check
+    if (win_semantics.spread_en)
     {
-	WINNER('todo');
+	// we calculate the absolute difference like so
+	var diff = votes.lit - votes.sus;
+
+	// if the difference is gt_eq to the spread value, we declare a WINNER
+	// if the difference is positive, lit won, sus otherwise.
+        if (Math.abs(diff) >= win_semantics.spread)
+        {
+	    return WINNER( (diff>0) ? 'lit' : 'sus');
+        }
+    }
+
+    //top check
+    if (win_semantics.top_en)
+    {
+        if (votes.lit >= win_top)
+        {
+	    return WINNER('lit');
+        }
+        if (votes.sus >= win_top)
+        {
+	    return WINNER('sus');
+        }
     }
 }
+
 
 // function for handling votes
 function handle_vote(socket, data)
@@ -206,16 +283,17 @@ function reset()
 	timeouts.length=0; // clear the timeouts array
 }
 
-function broadcast_votes()
+function broadcast_votes(winner_name)
 {
     if (state === "enabled")
     {
         crowd.io.sockets.emit('votes', { sus: votes.sus, 
-		                         lit: votes.lit });
+		                         lit: votes.lit,
+		                         win: winner_name
+		                       });
 	votes.updated=false; // reset the update tracker
     }
 }
-
 
 function update_song_title(title)
 {
@@ -224,9 +302,8 @@ function update_song_title(title)
     crowd.io.sockets.emit('title', title);
 }
 
-
 // timer to broadcast votes to all clients
-setInterval(function(){broadcast_votes();}, 2500); //ms
+setInterval(function(){broadcast_votes("");}, 2500); //ms
 
 (function(){
     console.log("SUS/LIT voting server is alive.");
