@@ -3,7 +3,7 @@
       // define callbacks for socket event(s) //
       var  my_id='todo',
            current_track='',
-           websocket_server_address='http://localhost:4220',
+	   websocket_server_address=window.location.href,
            limiter={
               limit: function(){}
            };
@@ -19,7 +19,7 @@
       
       ***/
 
-      // updates the votes meter based on the update message from server.
+      // updates the votes meter and gif overlay based on the update message from server.
       function update_votes(data)
       {
           $('#sus_progress').val(data.sus);
@@ -28,12 +28,13 @@
           $('#lit_progress').val(data.lit);
           $('#lit_count').text((data.lit).toString());
 
-
 	  if (data.sus > data.lit)
 	  {
 	      // sus is winning
 	      $('#sus_count').addClass('bold');
 	      $('#lit_count').removeClass('bold');
+
+	      $('#gif').attr('src', 'assets/gif/wookie.gif');
 	  }
 
 	  if (data.sus < data.lit)
@@ -41,16 +42,32 @@
 	      // lit is winning
 	      $('#sus_count').removeClass('bold');
 	      $('#lit_count').addClass('bold');
+
+	      $('#gif').attr('src', 'assets/gif/pikachu.gif');
 	  }
+
+	  if (data.sus == data.lit)
+	  {
+	      $('#gif').attr('src', ''); // sus
+          }
+
+	  $('#gif').fadeTo("slow", Math.abs((data.sus - data.lit)/(data.sus + data.lit)));
       }
 
       function disable_voting()
       {
-	  // TODO disable buttons
+	  $('#sus_btn').prop("disabled", true);
+	  $('#lit_btn').prop("disabled", true);
       }
       function enable_voting()
       {
-	  // TODO reset progress bars, enable buttons
+	  //enable buttons
+	  $('#sus_btn').prop("disabled", true);
+	  $('#lit_btn').prop("disabled", true);
+
+	  //reset progress bars
+	  $('#sus_progress').val(0);
+	  $('#lit_progress').val(0);
       }
 
       function sus_win()
