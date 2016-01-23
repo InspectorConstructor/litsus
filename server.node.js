@@ -42,7 +42,13 @@ Object.seal(votes);
 // crowd application
 crowd.app = require('http').createServer(crowd_handler);
 crowd.io = require('socket.io')(crowd.app);
+
+crowd.app.on('clientError', (e) => {
+	console.log(`Got error: ${e.message}`);
+    });
+
 crowd.app.listen(crowd_port_num);
+
 
 // control application
 control.app = require('http').createServer(control_handler);
@@ -217,11 +223,11 @@ function winner_check()
     //top check
     if (win_semantics.top_en)
     {
-        if (votes.lit >= win_top)
+        if (votes.lit >= win_semantics.top)
         {
 	    return WINNER('lit');
         }
-        if (votes.sus >= win_top)
+        if (votes.sus >= win_semantics.top)
         {
 	    return WINNER('sus');
         }
