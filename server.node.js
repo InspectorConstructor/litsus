@@ -17,10 +17,12 @@ var fs = require('fs'), // filesystem
     },
     _id = 0,
     state = "enabled",
-    vote_timeout_ms = 3000,
+    vote_timeout_ms = 8000,
     current_title = '',
     admin_port_num = 4808,
     crowd_port_num = 4220,
+    vote_timer = null, // will hold the timer returned by setTimeout or null
+    timer_ms = 30050, // 30 seconds, plus 50 ms as a tiny window for initial network delay
 
 // object that contains our win case values and flags to control win cases.
 // spread is the lead one vote category needs to gain over the other category to win.
@@ -49,11 +51,43 @@ crowd.app.on('clientError', (e) => {
 
 crowd.app.listen(crowd_port_num);
 
-
 // control application
 control.app = require('http').createServer(control_handler);
 control.io = require('socket.io')(control.app);
 control.app.listen(admin_port_num);
+
+
+// called when the timer reaches zero
+// not called if the timer is cancelled before zero
+function timer_expire()
+{
+    // reset timer
+    vote_timer = null;
+
+    // pick a winner
+    if ( votes.lit == votes.sus )
+        TIE();
+    else
+        WINNER((votes.lit > votes.sus) ? "lit" : "sus");
+
+}
+
+function stop_timer()
+{
+    if ( vote_timer !== null )
+    {
+        clearTimeout(vote_timer);
+	vote_timer = null;
+    }
+}
+
+function start_timer()
+{
+    if ( vote_timer === null )
+    {
+	vote_timer = setTimeout(function(){ timer_expire(); }, timer_ms);
+    }
+}
 
 // http server request handler for crowd app
 function crowd_handler (req, res) {
@@ -83,6 +117,7 @@ function control_handler (req, res) {
 	    return res.end('Server Error: failed loading control.html');
 	}
 
+	// todo mime types
 	res.writeHead(200);
 	res.end(data);
     });
@@ -108,8 +143,9 @@ crowd.io.on('connection', function (socket) {
 	var id = map_ip_to_id(socket.request.connection.remoteAddress);
 
 	// news and my other event came with the demo
-	socket.emit('news', { hello: 'world', id: id});
-	socket.on('my other event', function (data) {
+	socket.emit('hi', { hello: 'world', id: id});
+
+	socket.on('ready', function (data) {
 		console.log(data);
 	    });
 
@@ -192,13 +228,19 @@ function set_timeout(ip)
     timeouts[ip] = d.getTime();
 }
 
-// run the winner code body
+function TIE()
+{
+    //todo
+    WINNER('lit'); // lit is temporary tiebreaker
+}
+
 function WINNER(sus_or_lit)
-{ //todo
-    console.log('WINNER REACHED');
+{
+    console.log('WINNER REACHED: ', sus_or_lit);
 
     //tell clients who won via a winning votes message
     broadcast_votes(sus_or_lit);
+
     // stop counting votes
     disable();
 }
@@ -234,7 +276,6 @@ function winner_check()
     }
 }
 
-
 // function for handling votes
 function handle_vote(socket, data)
 {
@@ -258,35 +299,43 @@ function handle_vote(socket, data)
 	    votes.sus++;
 	else if (data.its === "lit")
 	    votes.lit++;
+
 	votes.updated=true;
 	set_timeout(ip);
 	console.log("counting vote!!");
 	winner_check();
+
+	// send votes immediately to the person who voted to make the system look responsive.
+	socket.emit('votes', { sus: votes.sus,
+                               lit: votes.lit,
+                               win: "" });
 }
 
 // disable
 function disable()
 {
+    stop_timer();
     console.log('disabling voting');
-	state = 'disabled';
-	crowd.io.sockets.emit('disable');
+    state = 'disabled';
+    crowd.io.sockets.emit('disable');
 }
 
 // enable
 function enable()
 {
     console.log('enabling voting');
-	state = 'enabled';
-	crowd.io.sockets.emit('enable');
+    state = 'enabled';
+    crowd.io.sockets.emit('enable');
+    start_timer();
 }
 
 // reset votes, title, and timeout
 function reset()
 {
     console.log('resetting');
-	votes.sus=votes.lit=0;
-	votes.updated=true;
-	timeouts.length=0; // clear the timeouts array
+    votes.sus=votes.lit=0;
+    votes.updated=true;
+    timeouts.length=0; // clear the timeouts array
 }
 
 function broadcast_votes(winner_name)
