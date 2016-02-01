@@ -213,6 +213,7 @@ $(function(){
       socket.on('next_vote', function (data) { // receive new song title and start a new voting session
 	  console.log('Next vote. title = ' + data);
 	  $('#song_title').text(data);
+	  update_votes({ lit: 0, sus: 0, win: "" });
 	  enable_voting();
       }); 
 
