@@ -11,7 +11,7 @@
     <script src="/socket_driver.js"></script>
     <link rel="stylesheet" href="css/base-min.css">
     <link rel="stylesheet" href="css/pure-min.css">
-    <link rel="stylesheet" href="css/grids-responsive-min.css">
+    <!-- todo check this out if needed link rel="stylesheet" href="css/grids-responsive-min.css" -->
     <style>
       body {
         /** this gradient: http://colorzilla.com/gradient-editor/#f0c4ba+0,e65958+100 **/
@@ -26,6 +26,7 @@
         background-attachment: fixed;
       }
 
+      /* standard text style */
       .isitsus {
         color:white;
         text-shadow: -2px 2px 1px rgba(72, 72, 72, 1);
@@ -36,17 +37,21 @@
       }
 
       #sus_btn {
-        background-image: url('assets/sus.jpg') ;
+        background-image: url('assets/sus.png') ;
         background-size:contain;
-        width:100px;
-        height:100px;
       }
 
       #lit_btn {
-        background-image: url('assets/lit.jpg') ;
+        background-image: url('assets/lit.png') ;
         background-size:contain;
+      }
+
+      .buttonswag {
         width:100px;
         height:100px;
+        border-style:solid;
+        border-color:white;
+        border-radius: 7px;
       }
 
       .center-chilren {
@@ -71,13 +76,19 @@
       #gif
       {
         z-index:-1;
-      
+      max-width: 100%
       }
 
 /*
       #time {
       }
 */
+
+      p {
+        color:white;
+        text-shadow: -1px 1px 1px rgba(72, 72, 72, 1);
+      }
+
       /** progress bar css hacks from https://css-tricks.com/html5-progress-element/ **/
 
       /* todo, finish progress bars */
@@ -106,7 +117,13 @@
         border-radius: 2px; 
         background-size: 35px 20px, 100% 100%, 100% 100%;
       }
+
+      progress {
+      display: none;
+}
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   </head>
   <body><div class="center-chilren ">
 
@@ -122,22 +139,15 @@
       </div>
     </div>
 
-<!--    <div id="gif-overlay">
-
-    </div -->
-
-
-      <image id="gif">
-
     <!-- buttons and progress bars -->
     <div class="pure-g" id="buttons_div">
       <div class="pure-u-1-2">
-	<button id="sus_btn">SUS</button>
+	<button id="sus_btn" class="buttonswag">SUS</button>
 	<progress max="10" value="0" id="sus_progress"></progress>
 	<p id="sus_count">0</p>
       </div>
       <div class="pure-u-1-2">
-	<button id="lit_btn">LIT</button>
+	<button id="lit_btn" class="buttonswag">LIT</button>
 	<progress max="10" value="0" id="lit_progress"></progress>
 	<p id="lit_count">0</p>
       </div>
@@ -155,7 +165,14 @@
 
     <div class="pure-g">
       <div class="pure-u-1" id="time_div">
-	<p id="time">0</p>
+	<p>Time Left: <span id="time">0</span></p>
+      </div>
+    </div>
+
+    <!-- animated gif -->
+    <div class="pure-g">
+      <div class="pure-u-1">
+	<image id="gif">
       </div>
     </div>
 

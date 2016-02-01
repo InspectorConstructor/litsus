@@ -1,31 +1,38 @@
 // socket_driver.js
 
 // todo make this more intimidating
-    console.log('               __     __           __                           __');
-    console.log('   ____ ____  / /_   / /___  _____/ /_     ____  ___  _________/ /');
-    console.log('  / __ `/ _ \/ __/  / / __ \/ ___/ __/    / __ \/ _ \/ ___/ __  / ');
-    console.log(' / /_/ /  __/ /_   / / /_/ (__  ) /__    / / / /  __/ /  / /_/ /  ');
-    console.log(' \__, /\___/\__/  /_/\____/____/\__( )  /_/ /_/\___/_/   \__,_/   ');
-    console.log('/____/                             |/                             ');
+console.log('               __     __           __                           __');
+console.log('   ____ ____  / /_   / /___  _____/ /_     ____  ___  _________/ /');
+console.log('  / __ `/ _ \/ __/  / / __ \/ ___/ __/    / __ \/ _ \/ ___/ __  / ');
+console.log(' / /_/ /  __/ /_   / / /_/ (__  ) /__    / / / /  __/ /  / /_/ /  ');
+console.log(' \__, /\___/\__/  /_/\____/____/\__( )  /_/ /_/\___/_/   \__,_/   ');
+console.log('/____/                             |/                             ');
 
-      // define callbacks for socket event(s)
-      var my_id='todo',
-          current_track='',
-	  websocket_server_address=window.location.href,
-	  timer=null,
-          limiter={
-              limit: function(){}
-          },
-	  time_remaining=0, // ms
-	  sounds={
-	      lit: new Audio("assets/lit_airhorn.mp3"),
-	      sus: new Audio("assets/sus_airhorn.mp3"),
-	      gong: new Audio("assets/gong.mp3"),
-	  },
-	  gifs = { // todo fill this with gif filenames
-	      lit: [],
-	      sus: []
-	  }
+// define callbacks for socket event(s)
+var my_id = 'todo',
+    current_track = '',
+    timer = null,
+    limiter = {
+        limit: function(){}
+    },
+    time_remaining = 0, // ms
+    sounds = {
+	lit: new Audio("assets/lit_airhorn.mp3"),
+	sus: new Audio("assets/sus_airhorn.mp3"),
+	gong: new Audio("assets/gong.mp3"),
+    },
+    gifs = { // todo fill this with gif filenames
+	lit: [],
+	sus: []
+    },
+    socket = io(window.location.href);
+
+
+      // TODO: we want some slow reconnect settings.
+      // http://socket.io/docs/client-api/#manager(url:string,-opts:object)
+      /*var connection_settings = {
+          reconnection: true, // todo add more settings
+      };*/
 
       /***
         sus/lit votes object: (not final)
@@ -39,10 +46,12 @@
       ***/
 
 
-      function time_up()
-      {
-	  // todo some gui animation whatever
-      }
+function time_up()
+{
+    // todo some gui animation whatever
+}
+
+// todo indenting aghhh
 
       function second_tick()
       {
@@ -95,7 +104,6 @@
       }
 
       // updates the votes meter and gif overlay based on the update message from server.
-      // as of now, also accepts
       function update_votes(data)
       {
           $('#sus_progress').val(data.sus);
@@ -160,6 +168,7 @@
 
       function sus_win()
       {
+	  console.log("ITS SUS... '>_>");
 	  disable_voting();
 	  $('#gif').attr('src', 'assets/png/itssus.png');
 	  sounds.sus.play();
@@ -167,6 +176,7 @@
 
       function lit_win()
       {
+	  console.log("ITS LIT!! ^_^");
 	  disable_voting();
 	  $('#gif').attr('src', 'assets/png/itslit.png');
 	  sounds.lit.play();
@@ -181,17 +191,16 @@
               console.warn("unexpected vote cast:", sus_or_lit);
       }
 
-      // set up our socket
 
-      // TODO connection settings we want some slow reconnect settings
-      // http://socket.io/docs/client-api/#manager(url:string,-opts:object)
-      /*var connection_settings = {
-          reconnection: true, // todo add more settings
-      };
-      */
+// jquery's on-ready function: runs the anonymous function when 
+// the page's DOM has been initialized and readied.
+// sets up the socket
+$(function(){
 
-      // get a socket using socket.io call
-      var socket = io(websocket_server_address);
+      // initialize with voting disabled
+      disable_voting();
+
+      // set up our socket:
 
       // set some callbacks for the socket.
       socket.on('hi', function (data) { // demo code event. here for testing.
@@ -200,9 +209,16 @@
           socket.emit('ready', { ready: my_id });
       });
 
+      /* todo: use high-level controls like these to reduce network usage. */
+      socket.on('next_vote', function (data) { // receive new song title and start a new voting session
+	  console.log('Next vote. title = ' + data);
+	  $('#song_title').text(data);
+	  enable_voting();
+      }); 
+
+      // should be unused by launch
       socket.on('title', function (data) { // receive new song title
-          console.log('got new title');
-          console.log(data);
+          console.log('got new title:' + data);
 	  $('#song_title').text(data);
       });
 
@@ -212,28 +228,26 @@
           update_votes(data);
       });
 
+      // should be unused by launch
       socket.on('enable', function (data) { // receive current voting status
           console.log('Enabling voting');
           enable_voting();
       });
 
       socket.on('disable', function (data) { // receive current voting status
-          console.log('Disabling voting (actually, command is temporarliy bypassed');
+          console.log('Disabling voting (actually, command is temporarliy bypassed. we should only disable initially, and when someone wins.)');
           //disable_voting();
       });
 
-      // jquery's on-ready function thinger: runs the anonymous function when 
-      // the page's DOM has been initialized and readied.
-      $(function(){
-          // sus click handler
-          $('#sus_btn').click(function(){
+      // sus click handler
+      $('#sus_btn').click(function(){
               console.log('sus pressed...');
               vote('sus');
           });
 
-          // lit click handler
-          $('#lit_btn').click(function(){
+      // lit click handler
+      $('#lit_btn').click(function(){
               console.log('lit pressed!!!');
               vote('lit');
           });
-      });
+    }); // end of the jquery onready function

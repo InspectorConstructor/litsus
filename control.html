@@ -38,10 +38,9 @@
       ***/
 
       // updates the votes meter based on the update message from server.
-      function update_votes(data)
-      {
-          //todo
-          $('#votes_div').text(data.pos.toString());
+      function update_votes(data){
+          // todo
+          $('#votes_div').text(JSON.stringify(data));
       }
 
       function do_reset(){
@@ -52,6 +51,12 @@
       function do_send_text(){
           console.log('sending title');
           socket.emit('title', $('#song_name').val());
+      }
+
+      function start_next_vote(){
+          console.log('Starting next vote with title');
+          socket.emit('next_vote', $('#song_name').val());
+          // todo message to user. $('#song_name').val());
       }
 
       function do_win(){
@@ -76,8 +81,7 @@
       }
 
       // function to send a vote to the server.
-      function vote(sus_or_lit)
-      {
+      function vote(sus_or_lit){
           if (sus_or_lit === 'sus' || sus_or_lit === 'lit')
               socket.emit('vote', {id: my_id, its: sus_or_lit});
           else
@@ -109,6 +113,10 @@
               console.log('send_text pressed');
               do_send_text();
           });
+          $('#start_vote_btn').click(function(){
+              console.log('start_vote_btn pressed');
+              start_next_vote();
+          });
           $('#win_btn').click(function(){
               console.log('win pressed');
               do_win();
@@ -127,8 +135,6 @@
           });
       });
 
-// todo sync win conditions from server
-
     </script>
     <style>
       .cooper {
@@ -137,30 +143,34 @@
     </style>
   </head>
   <body>
-    <h1>Admin Demo</h1>
+    <h1>litsus Admin Panel</h1>
     <div id="buttons_div">
       <input type="text" id="song_name">
-      <button class="pure-button" id="send_text_btn">UPDATE TRACK TEXT</button>
-      <button class="pure-button" id="enable_btn">ENABLE VOTING</button>
-      <button class="pure-button" id="disable_btn">DISABLE VOTING</button>
-      <button class="pure-button" id="reset_btn">RESET SCORE</button>
+      <button class="pure-button" id="start_vote_btn">Start Vote</button>
+      <button class="pure-button" id="send_text_btn">Fix misspelled title</button>
+      <!-- div class="old_controls">
+	<button class="pure-button" id="send_text_btn">UPDATE TRACK TEXT</button>
+	<button class="pure-button" id="enable_btn">ENABLE VOTING</button>
+	<button class="pure-button" id="disable_btn">DISABLE VOTING</button>
+	<button class="pure-button" id="reset_btn">RESET SCORE</button>
+      </div -->
     </div>
-<br/>
-    <div>
+    <br/>
+    <!--div class="unused_vote controls">
       <label for="top_en">Top enable</label>
       <input type="checkbox" id="top_en" checked>
       <label for="top">Top vote count</label>
       <input type="number" min="1" id="top" value="100">
-<br/>
+      <br/>
       <label for="spread_en">Spread enable</label>
       <input type="checkbox" id="spread_en">
       <label for="spread">Spread count</label>
       <input type="number" min="1" id="spread" value="60">
-<br/>
+      <br/>
       <button class="pure-button" id="win_btn">UPDATE WIN SEMANTICS</button>
-    </div>
+    </div-->
     <div id="votes_div" class="cooper">
-      votes will show up here maybe!
+      votes will show up here maybe
     </div>
   </body>
 </html>

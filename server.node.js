@@ -16,7 +16,7 @@ var fs = require('fs'), // filesystem
         updated: false // flag to keep track of stuff
     },
     _id = 0,
-    state = "enabled",
+    state = "disabled",
     vote_timeout_ms = 8000,
     current_title = '',
     admin_port_num = 4808,
@@ -150,9 +150,11 @@ crowd.io.on('connection', function (socket) {
 	    });
 
 	socket.on('vote', function (data) {
-		console.log("got vote!");
-		console.log(data);
-		handle_vote(socket, data);
+		if (state === "enabled") {
+		    console.log("got vote!");
+		    console.log(data);
+		    handle_vote(socket, data);
+		} else { console.log("ignoring vote (voting disabled right now)"); }
 	    });
     });
 
@@ -172,6 +174,11 @@ control.io.on('connection', function (socket) {
 	socket.on('reset', function (data) {
 		console.log("RESET");
 		reset();
+	    });
+
+	socket.on('next_vote', function (data) { // data here is just a string representing the next song title.
+		console.log("Starting next vote. song title: " + data);
+		next_vote(data);
 	    });
 
 	socket.on('title', function (data) { // data here is just a string with the title in it.
@@ -311,42 +318,59 @@ function handle_vote(socket, data)
                                win: "" });
 }
 
+function next_vote(song_title)
+{
+    if (state === "disabled"){ // accidential mid re-enable protection
+	// start timers
+	reset();
+	enable_vote_broadcast();
+	start_timer();
+	state = 'enabled';
+
+	crowd.io.sockets.emit('next_vote', song_title); // tell clients there's a new sherrif in town #fired
+    }
+}
+
 // disable
 function disable()
 {
     stop_timer();
+    disable_vote_broadcast();
     console.log('disabling voting');
     state = 'disabled';
     crowd.io.sockets.emit('disable');
 }
 
-// enable
+// resets and enables voting. enable.
 function enable()
 {
     console.log('enabling voting');
     state = 'enabled';
     crowd.io.sockets.emit('enable');
-    start_timer();
 }
 
 // reset votes, title, and timeout
 function reset()
 {
     console.log('resetting');
-    votes.sus=votes.lit=0;
-    votes.updated=true;
-    timeouts.length=0; // clear the timeouts array
+    votes.sus = votes.lit = 0;
+    votes.updated = true;
+    timeouts.length = 0; // clear the timeouts array
 }
 
 function broadcast_votes(winner_name)
 {
     if (state === "enabled")
     {
-        crowd.io.sockets.emit('votes', { sus: votes.sus, 
-		                         lit: votes.lit,
-		                         win: winner_name
-		                       });
-	votes.updated=false; // reset the update tracker
+	var vote_pkt = {
+                         sus: votes.sus, 
+                         lit: votes.lit,
+                         win: winner_name
+                       };
+
+        crowd.io.sockets.emit('votes', vote_pkt);
+        control.io.sockets.emit('votes', vote_pkt);
+	votes.updated = false; // reset the update tracker
     }
 }
 
@@ -358,12 +382,24 @@ function update_song_title(title)
 }
 
 // timer to broadcast votes to all clients
-setInterval(function(){broadcast_votes("");}, 2500); //ms
+var broadcast_timer = null;
+
+function enable_vote_broadcast(){
+    broadcast_timer = setInterval(function(){broadcast_votes("");}, 2500); //ms
+}
+
+function disable_vote_broadcast(){ 
+    if (broadcast_timer !== null ) {
+	clearInterval(broadcast_timer); //ms
+	broadcast_timer = null;
+    }
+}
+
 
 (function(){
     console.log("SUS/LIT voting server is alive.");
-    console.log("Crowd app is on port "+crowd_port_num);
-    console.log("Control app is on port "+admin_port_num);
+    console.log("Crowd app is on port " + crowd_port_num);
+    console.log("Control app is on port " + admin_port_num);
     console.log("Voting is currently DISABLED.");
     console.log("Have an admin set a song title and enable voting.");
 })();
