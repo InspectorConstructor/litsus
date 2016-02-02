@@ -132,7 +132,11 @@ function time_up()
 
 	  if (data.sus == data.lit)
 	  {
-	      $('#gif').attr('src', ''); // sus
+	      $('#gif').hide();//attr('src', ''); // sus
+          }
+	  else
+	  {
+	      $('#gif').show();//attr('src', ''); // sus
           }
 
 	  if (data.win == "lit")
