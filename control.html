@@ -39,8 +39,9 @@
 
       // updates the votes meter based on the update message from server.
       function update_votes(data){
-          // todo
-          $('#votes_div').text(JSON.stringify(data));
+          $('#numlit').text(data.lit);
+          $('#numsus').text(data.sus);
+          $('#winner').text(data.win);
       }
 
       function do_reset(){
@@ -140,12 +141,28 @@
       .cooper {
           font-family: Cooper Black, Arial Black, Sans-Serif;
       }
+
+      #buttons_div {
+          border: 3px solid gray;
+          border-radius:7px;
+          padding: 8px;
+          display:inline;
+
+      }
+
+      #buttons_div * {
+          font-weight: bold;
+      }
+
+      #song_name {
+          min-width: 250px;
+      }
     </style>
   </head>
-  <body>
+  <body class="cooper">
     <h1>litsus Admin Panel</h1>
     <div id="buttons_div">
-      <input type="text" id="song_name">
+      <input placeholder="Song title goes here" type="text" id="song_name">
       <button class="pure-button" id="start_vote_btn">Start Vote</button>
       <button class="pure-button" id="send_text_btn">Fix misspelled title</button>
       <!-- div class="old_controls">
@@ -169,8 +186,11 @@
       <br/>
       <button class="pure-button" id="win_btn">UPDATE WIN SEMANTICS</button>
     </div-->
-    <div id="votes_div" class="cooper">
-      votes will show up here maybe
+    <div id="votes_div">
+      <h2>Voting status</h2>
+      <p>LIT  <span id="numlit" /> </p>
+      <p>SUS  <span id="numsus" /> </p>
+      <p>WIN  <span id="winner" /> </p>
     </div>
   </body>
 </html>
