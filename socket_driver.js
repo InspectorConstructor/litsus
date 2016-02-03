@@ -21,12 +21,23 @@ var my_id = 'todo',
 	sus: new Audio("assets/sus_airhorn.mp3"),
 	gong: new Audio("assets/gong.mp3"),
     },
-    gifs = { // todo fill this with gif filenames
-	lit: [],
-	sus: []
+    gifs = {
+	lit: ["eifelfireworks.gif", /*"fireworkice.gif",*/ "cheeseburger.gif", "taylor.gif", 
+	      "pikachu.gif", "pearl.gif", "dogebat.gif", "mariocape.gif", ],
+
+	sus: ["ohface.gif", "blaargh.gif", "prodkick.gif", "wookie.gif",
+	      "mariojump.gif", "oprah.gif",  "taco.gif",   "mokeypush.gif", "kermit.gif"],
     },
+    lit_gif_idx = 0,
+    sus_gif_idx = 0,
     socket = io(window.location.href);
 
+    Object.freeze(gifs);
+
+    function ringbuffer_index_increment(idx, len)
+    {
+	return (idx + 1) % len;
+    }
 
       // TODO: we want some slow reconnect settings.
       // http://socket.io/docs/client-api/#manager(url:string,-opts:object)
@@ -60,7 +71,7 @@ function time_up()
 
 	  $('#time').text(time_remaining);
 
-	  if (time_remaining == 0) {
+	  if (time_remaining === 0) {
 	      stop_timer();
 	      time_up();
 	  }
@@ -118,7 +129,7 @@ function time_up()
 	      $('#sus_count').addClass('bold');
 	      $('#lit_count').removeClass('bold');
 
-	      $('#gif').attr('src', 'assets/gif/wookie.gif');
+	      $('#gif').attr('src', 'assets/gif/' + gifs.sus[sus_gif_idx]);
 	  }
 
 	  if (data.sus < data.lit)
@@ -127,7 +138,7 @@ function time_up()
 	      $('#sus_count').removeClass('bold');
 	      $('#lit_count').addClass('bold');
 
-	      $('#gif').attr('src', 'assets/gif/pikachu.gif');
+	      $('#gif').attr('src', 'assets/gif/' + gifs.lit[lit_gif_idx]);
 	  }
 
 	  if (data.sus == data.lit)
@@ -143,8 +154,8 @@ function time_up()
 	      lit_win();
 	  else if (data.win == "sus")
 	      sus_win();
-	  else
-	      $('#gif').fadeTo("slow", Math.abs((data.sus - data.lit)/(data.sus + data.lit)));
+	  //else // transparency/opacity:
+	  //    $('#gif').fadeTo("slow", Math.abs((data.sus - data.lit)/(data.sus + data.lit)));
       }
 
       function disable_voting()
@@ -219,6 +230,8 @@ $(function(){
 	  $('#song_title').text(data);
 	  update_votes({ lit: 0, sus: 0, win: "" });
 	  enable_voting();
+	  lit_gif_idx = ringbuffer_index_increment(lit_gif_idx, gifs.lit.length);
+	  sus_gif_idx = ringbuffer_index_increment(sus_gif_idx, gifs.sus.length);
       }); 
 
       // should be unused by launch
