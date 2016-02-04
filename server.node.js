@@ -146,7 +146,7 @@ crowd.io.on('connection', function (socket) {
 	socket.emit('hi', { id: id });
 
 	socket.on('ready', function (data) {
-		console.log(data);
+		;//console.log(data);
 	    });
 
 	socket.on('vote', function (data) {
@@ -169,7 +169,7 @@ control.io.on('connection', function (socket) {
 
 	// todo
 	socket.on('ok', function (data) {
-		console.log('client at '+ ip +' ready');
+		console.log('Admin  at '+ ip +' ready');
 	    });
 
 	// refactor, for these 4,  maybe make the event named 'admin', and put the event info in the data?
@@ -406,7 +406,7 @@ function reset()
     console.log('resetting');
     votes.sus = votes.lit = 0;
     votes.updated = true;
-    timeouts.length = 0; // clear the timeouts array
+    timeouts=[]; // clear the timeouts array
 }
 
 function broadcast_votes(winner_name)
