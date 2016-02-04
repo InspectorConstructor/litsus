@@ -29,7 +29,7 @@ var fs = require('fs'), // filesystem
 // top is the max value needed to win.
     win_semantics = {
         top: 100,
-        top_en: true,
+        top_en: false,
 
         spread: 60,
         spread_en: false
@@ -203,11 +203,12 @@ control.io.on('connection', function (socket) {
 		WINNER(data);
 	    });
 
+	/*
 	socket.on('win_semantics', function (data) {
 		console.log("receiced updated win semantics");
 		update_win_semantics();
 	    });
-
+	*/
 
     });
 
@@ -264,6 +265,9 @@ function WINNER(sus_or_lit)
 // return true if winner, fale otherwise
 function winner_check()
 {
+    // this code is not used anymore, but here in case we think of using it again
+    return false;
+
     //spread check
     /* not doing spread.
     if (win_semantics.spread_en)
