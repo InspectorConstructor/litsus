@@ -185,7 +185,7 @@ function time_up()
       {
 	  console.log("ITS SUS... '>_>");
 	  disable_voting();
-	  $('#gif').attr('src', 'assets/png/itssus.png');
+	  $('#gif').attr('src', 'assets/itssus.png');
 	  sounds.sus.play();
       }
 
@@ -193,7 +193,7 @@ function time_up()
       {
 	  console.log("ITS LIT!! ^_^");
 	  disable_voting();
-	  $('#gif').attr('src', 'assets/png/itslit.png');
+	  $('#gif').attr('src', 'assets/itslit.png');
 	  sounds.lit.play();
       }
 
