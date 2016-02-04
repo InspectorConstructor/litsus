@@ -2,7 +2,7 @@
 // server.node.js
 // the complete litsus server
 // runs the crowd app and control app backends
-// based on example code from socket.io website
+// adapted from the example code from socket.io website
 ;console.log('starting up...');
 // declarations
 var fs = require('fs'), // filesystem
@@ -13,7 +13,7 @@ var fs = require('fs'), // filesystem
     votes = {
         sus: 0,
         lit: 0,
-        updated: false // flag to keep track of stuff
+        updated: false // flag to keep track of stuff (...unused?)
     },
     _id = 0,
     state = "disabled",
@@ -143,7 +143,7 @@ crowd.io.on('connection', function (socket) {
 	var id = map_ip_to_id(socket.request.connection.remoteAddress);
 
 	// news and my other event came with the demo
-	socket.emit('hi', { hello: 'world', id: id});
+	socket.emit('hi', { id: id });
 
 	socket.on('ready', function (data) {
 		console.log(data);
@@ -151,10 +151,12 @@ crowd.io.on('connection', function (socket) {
 
 	socket.on('vote', function (data) {
 		if (state === "enabled") {
-		    console.log("got vote!");
-		    console.log(data);
+		    //console.log("got vote!");
+		    //console.log(data);
 		    handle_vote(socket, data);
-		} else { console.log("ignoring vote (voting disabled right now)"); }
+		} else { 
+		    ;//console.log("ignoring vote (voting disabled right now)"); 
+		}
 	    });
     });
 
@@ -235,6 +237,12 @@ function set_timeout(ip)
     timeouts[ip] = d.getTime();
 }
 
+function log_vote(ip, lit_or_sus)
+{
+    var d = new Date();
+    timeouts[ip] = {time:d.getTime(), vote:lit_or_sus};
+}
+
 function TIE()
 {
     //todo
@@ -253,9 +261,11 @@ function WINNER(sus_or_lit)
 }
 
 // check if there's a winner
+// return true if winner, fale otherwise
 function winner_check()
 {
     //spread check
+    /* not doing spread.
     if (win_semantics.spread_en)
     {
 	// we calculate the absolute difference like so
@@ -265,62 +275,103 @@ function winner_check()
 	// if the difference is positive, lit won, sus otherwise.
         if (Math.abs(diff) >= win_semantics.spread)
         {
-	    return WINNER( (diff>0) ? 'lit' : 'sus');
+	    WINNER( (diff>0) ? 'lit' : 'sus');
+	    return true;
         }
-    }
+    } */
 
     //top check
     if (win_semantics.top_en)
     {
         if (votes.lit >= win_semantics.top)
         {
-	    return WINNER('lit');
+	    WINNER('lit');
+	    return true;
         }
         if (votes.sus >= win_semantics.top)
         {
-	    return WINNER('sus');
+	    WINNER('sus');
+	    return true;
         }
     }
+
+    return false;
 }
 
-// function for handling votes
+
+// function to actually handle the message
+function count_vote(ip, data)
+{
+    // count the vote
+    if (data.its === "sus")
+    {
+	votes.sus++;
+	log_vote(ip, "sus");
+	console.log("sus vote " + ip);
+    }
+    else if (data.its === "lit")
+    {
+	votes.lit++;
+	log_vote(ip, "lit");
+	console.log("lit vote " + ip);
+    }
+    else
+    {
+	console.log("vote other than sus or lit received.... how sus. here it is: ");
+	console.log(data);
+    }
+
+    votes.updated = true;
+
+    return winner_check();
+}
+
+// vote message handler
 function handle_vote(socket, data)
 {
         if (state !== 'enabled')
 	    return;
 
-	// vote rate checking
+	var didSomethingWin = false;
+
+	// vote rate limiter
 	var ip = socket.request.connection.remoteAddress;
+
+	// check if client at this ip voted this round
 	if (ip in timeouts)
-	{
-	    //this ip has a timeout set: see if it is not time yet
+	{ 
 	    var d = new Date();
-	    if ((d.getTime() - timeouts[ip]) < vote_timeout_ms){
-		console.log("discarding fast vote");
-		return;
+
+	    // see if it's been long enough for it to waffle
+	    if ((d.getTime() - timeouts[ip].time) >= vote_timeout_ms)
+	    {
+		// check if they are actually waffling
+		if (data.its != timeouts[ip].vote)
+	        {
+		    votes[timeouts[ip].vote]--; // remove this ip's previous vote
+		    didSomethingWin = count_vote(ip, data); // apply the new vote from this ip
+		}
 	    }
 	}
+	else
+	{ // client at this ip has not voted this round
+	    didSomethingWin = count_vote(ip, data);
+	}
 
-	// finally, count the vote
-	if (data.its === "sus")
-	    votes.sus++;
-	else if (data.its === "lit")
-	    votes.lit++;
-
-	votes.updated=true;
-	set_timeout(ip);
-	console.log("counting vote!!");
-	winner_check();
-
-	// send votes immediately to the person who voted to make the system look responsive.
+    if (! didSomethingWin)
+    {
+	// send vote tallies to the person who voted. this makes the system look responsive.
 	socket.emit('votes', { sus: votes.sus,
-                               lit: votes.lit,
-                               win: "" });
+		               lit: votes.lit,
+		               win: "" });
+    }
 }
 
+// begins a new voting session
 function next_vote(song_title)
 {
-    if (state === "disabled"){ // accidential mid re-enable protection
+    if (state === "disabled") // accidential mid re-enable protection
+    { 
 	// start timers
 	reset();
 	enable_vote_broadcast();
@@ -331,7 +382,7 @@ function next_vote(song_title)
     }
 }
 
-// disable
+// disable voting
 function disable()
 {
     stop_timer();
@@ -341,7 +392,7 @@ function disable()
     crowd.io.sockets.emit('disable');
 }
 
-// resets and enables voting. enable.
+// enable voting
 function enable()
 {
     console.log('enabling voting');
