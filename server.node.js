@@ -49,12 +49,12 @@ crowd.app.on('clientError', (e) => {
 	console.log(`Got error: ${e.message}`);
     });
 
-crowd.app.listen(crowd_port_num);
+crowd.app.listen(crowd_port_num, '127.0.0.1');
 
 // control application
 control.app = require('http').createServer(control_handler);
 control.io = require('socket.io')(control.app);
-control.app.listen(admin_port_num);
+control.app.listen(admin_port_num, '127.0.0.1');
 
 
 // called when the timer reaches zero
