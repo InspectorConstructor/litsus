@@ -61,16 +61,16 @@ control.app.listen(admin_port_num);
 // not called if the timer is cancelled before zero
 function timer_expire()
 {
-    // reset timer
-    vote_timer = null;
+    stop_timer();
 
     // pick a winner
     if ( votes.lit == votes.sus )
         TIE();
     else
         WINNER((votes.lit > votes.sus) ? "lit" : "sus");
-
 }
+
+var start_timestamp = null;
 
 function stop_timer()
 {
@@ -78,6 +78,7 @@ function stop_timer()
     {
         clearTimeout(vote_timer);
 	vote_timer = null;
+	start_timestamp = null;
     }
 }
 
@@ -86,6 +87,8 @@ function start_timer()
     if ( vote_timer === null )
     {
 	vote_timer = setTimeout(function(){ timer_expire(); }, timer_ms);
+	var d = new Date();
+	start_timestamp = d.getTime();
     }
 }
 
@@ -136,6 +139,19 @@ function map_ip_to_id(ip)
     return id;
 }
 
+// return remaining time in seconds
+function getReminingTime()
+{
+    if (start_timestamp !== null)
+    {
+	var now = (new Date()).getTime();
+	var sec_diff = (start_timestamp - now) / 1000;
+	return 30 + sec_diff ; // 30 is hardcoded number of seconds per vote session
+    }
+    else
+	return 0;
+}
+
 // crowd app server setup
 crowd.io.on('connection', function (socket) {
 
@@ -143,7 +159,10 @@ crowd.io.on('connection', function (socket) {
 	var id = map_ip_to_id(socket.request.connection.remoteAddress);
 
 	// news and my other event came with the demo
-	socket.emit('hi', { id: id });
+	socket.emit('hi', { id: id, 
+		    time_remaining: getReminingTime(),
+		    title: current_title
+		    });
 
 	socket.on('ready', function (data) {
 		;//console.log(data);
@@ -381,6 +400,7 @@ function next_vote(song_title)
 	enable_vote_broadcast();
 	start_timer();
 	state = 'enabled';
+	current_title = song_title;
 
 	crowd.io.sockets.emit('next_vote', song_title); // tell clients there's a new sherrif in town #fired
     }

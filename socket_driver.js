@@ -67,8 +67,6 @@ function time_up()
       function second_tick()
       {
 	  --time_remaining;
-	  //todo decrement gui timer by one
-
 	  $('#time').text(time_remaining);
 
 	  if (time_remaining === 0) {
@@ -87,11 +85,13 @@ function time_up()
 	      ;
       }
 
-      function start_timer()
+      function start_timer(seconds)
       {
+	  if (typeof(seconds)==='undefined') seconds = 30; // this is how we do default arguments in js
+
 	  if (timer === null )
 	  {
-              time_remaining=30;
+	      time_remaining = Math.round(seconds); // global
 
 	      // set gui timer to 30 seconds
               $('#time').text(time_remaining);
@@ -107,6 +107,10 @@ function time_up()
 	  if ( timer !== null ) 
 	      clearInterval(timer);
 	  timer = null;
+
+	  // also set gui timer to zero
+	  time_remaining = 0;
+	  $('#time').text("0")
       }
 
       function timer_expire()
@@ -158,10 +162,12 @@ function time_up()
 	  //    $('#gif').fadeTo("slow", Math.abs((data.sus - data.lit)/(data.sus + data.lit)));
       }
 
+      // todo rename this end_voting
       function disable_voting()
       {
 	  $('#sus_btn').prop("disabled", true);
 	  $('#lit_btn').prop("disabled", true);
+	  stop_timer();
       }
 
       function enable_voting()
@@ -207,6 +213,12 @@ function time_up()
       }
 
 
+function vote_in_progress(current_title, seconds_left)
+{
+    $('#song_title').text(current_title + ' (please wait for the next vote!)');
+    start_timer(seconds_left);
+}
+
 // jquery's on-ready function: runs the anonymous function when 
 // the page's DOM has been initialized and readied.
 // sets up the socket
@@ -215,11 +227,16 @@ $(function(){
       // initialize with voting disabled
       disable_voting();
 
-      // set up our socket:
-
       // set some callbacks for the socket.
-      socket.on('hi', function (data) { // demo code event. here for testing.
+
+      // init message from server
+      socket.on('hi', function (data) {
 	  my_id = data.id;
+
+	  // this handles ui when a vote is in progress
+	  if (data.time_remaining !== 0)
+	      vote_in_progress(data.title, data.time_remaining); // expects seconds not ms. title is the title of the track
+
           console.log(data);
           socket.emit('ready', { ready: my_id });
       });
