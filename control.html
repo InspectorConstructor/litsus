@@ -42,6 +42,9 @@
           $('#numlit').text(data.lit);
           $('#numsus').text(data.sus);
           $('#winner').text(data.win);
+
+          // catch end of voting session by detecting a winner.
+          if (data.win != "") vote_inactive();
       }
 
       function do_reset(){
@@ -69,8 +72,10 @@
           }
 
           socket.emit('next_vote', data);
+          vote_active(); // this might need to be moved to a vote-start event body
       }
 
+/*
       function do_win(){
           var w;
           w.top = $('#top').val();
@@ -80,6 +85,14 @@
 
           console.log('sending win_semantics object');
           socket.emit('win_semantics', w);
+      }
+*/
+
+      // forces a winner
+      function WINNER(sus_or_lit)
+      {
+          console.log("FORCING WINNER: " + sus_or_lit);
+          socket.emit('WINNER', sus_or_lit);
       }
 
       function do_disable(){
@@ -93,12 +106,14 @@
       }
 
       // function to send a vote to the server.
+/*
       function vote(sus_or_lit){
           if (sus_or_lit === 'sus' || sus_or_lit === 'lit')
               socket.emit('vote', {id: my_id, its: sus_or_lit});
           else
               console.warn("unexpected vote cast:", sus_or_lit);
       }
+*/
 
       // set up our socket //
 
@@ -118,6 +133,41 @@
       });
 
 
+   var pre = ['#start_vote_btn'],
+       post = ['#sus_win_btn', '#lit_win_btn'];
+
+
+function list_enable(arr)
+{
+   for (var i in arr) {
+console.log("enabling " + i);
+     $(arr[i]).prop("disabled", true);
+   }
+}
+
+
+
+function list_disable(arr)
+{
+   for (var i in arr) {
+     $(arr[i]).prop("disabled", false);
+   }
+}
+
+
+function vote_inactive()
+{
+    list_disable(pre);
+    list_enable(post);
+}
+
+function vote_active()
+{
+    list_disable(post);
+    list_enable(pre);
+}
+
+
       // jquery's on-ready function thinger: runs the anonymous function when 
       // the page's DOM has been initialized and readied.
       $(function(){
@@ -129,10 +179,11 @@
               console.log('start_vote_btn pressed');
               start_next_vote();
           });
-          $('#win_btn').click(function(){
+	  // this win btn had to do with updating win semantics, not choosing a winner
+          /*$('#win_btn').click(function(){
               console.log('win pressed');
               do_win();
-          });
+          });*/
           $('#enable_btn').click(function(){
               console.log('enable pressed');
               do_enable();
@@ -145,8 +196,17 @@
               console.log('reset pressed');
               do_reset();
           });
-      });
+          $('#sus_win_btn').click(function(){
+              console.log('sus win pressed');
+              WINNER('sus');
+          });
+          $('#lit_win_btn').click(function(){
+              console.log('lit win pressed');
+              WINNER('lit');
+          });
 
+          vote_inactive();
+      });
     </script>
     <style>
       .cooper {
@@ -163,6 +223,8 @@
       #buttons_div * {
           font-weight: bold;
       }
+
+      .win { color: red ; font-weight: bold; }
 
       #buttons_div div {
       margin: 10px;
@@ -188,8 +250,13 @@
 	  <button class="pure-button" id="start_vote_btn">Start Vote</button>
 	  <button class="pure-button" id="send_text_btn">Fix misspelled title</button>
 	</div>
-    </div>
 
+	<div style="color:red;">
+	  <h2>Instant Win</h2>
+	  <button class="win pure-button" id="sus_win_btn">SUS WIN</button>
+	  <button class="win pure-button" id="lit_win_btn">LIT WIN</button>
+	</div>
+    </div>
 
       <!-- div class="old_controls">
 	<button class="pure-button" id="send_text_btn">UPDATE TRACK TEXT</button>
