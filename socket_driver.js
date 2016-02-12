@@ -170,8 +170,10 @@ function time_up()
 	  stop_timer();
       }
 
-      function enable_voting()
+      function enable_voting(ms)
       {
+	  if (typeof(ms)==='undefined') ms = 30000;
+
 	  //enable buttons
 	  $('#sus_btn').prop("disabled", false);
 	  $('#lit_btn').prop("disabled", false);
@@ -181,10 +183,10 @@ function time_up()
 	  $('#lit_progress').val(0);
 
 	  // start timer
-	  start_timer();
+	  start_timer(ms/1000);
 
 	  // gong
-	  sounds.gong.play();
+	  //sounds.gong.play();
       }
 
       function sus_win()
@@ -243,10 +245,10 @@ $(function(){
 
       /* todo: use high-level controls like these to reduce network usage. */
       socket.on('next_vote', function (data) { // receive new song title and start a new voting session
-	  console.log('Next vote. title = ' + data);
-	  $('#song_title').text(data);
+	  console.log('Next vote. title = ' + data.title);
+	  $('#song_title').text(data.title);
 	  update_votes({ lit: 0, sus: 0, win: "" });
-	  enable_voting();
+	  enable_voting(data.ms);
 	  lit_gif_idx = ringbuffer_index_increment(lit_gif_idx, gifs.lit.length);
 	  sus_gif_idx = ringbuffer_index_increment(sus_gif_idx, gifs.sus.length);
       }); 

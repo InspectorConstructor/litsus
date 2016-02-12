@@ -82,11 +82,14 @@ function stop_timer()
     }
 }
 
-function start_timer()
+function start_timer(ms)
 {
+    if (typeof(ms)==='undefined') ms = timer_ms;
+
+
     if ( vote_timer === null )
     {
-	vote_timer = setTimeout(function(){ timer_expire(); }, timer_ms);
+	vote_timer = setTimeout(function(){ timer_expire(); }, ms);
 	var d = new Date();
 	start_timestamp = d.getTime();
     }
@@ -198,8 +201,8 @@ control.io.on('connection', function (socket) {
 	    });
 
 	socket.on('next_vote', function (data) { // data here is just a string representing the next song title.
-		console.log("Starting next vote. song title: " + data);
-		next_vote(data);
+		console.log("Starting next vote. song title: " + data.title + "seconds = " + data.seconds);
+		next_vote(data.title, data.seconds * 1000 + 50); // 50 is an extra moment for network lag
 	    });
 
 	socket.on('title', function (data) { // data here is just a string with the title in it.
@@ -391,18 +394,18 @@ function handle_vote(socket, data)
 }
 
 // begins a new voting session
-function next_vote(song_title)
+function next_vote(song_title, duration_ms)
 {
     if (state === "disabled") // accidential mid re-enable protection
     { 
 	// start timers
 	reset();
 	enable_vote_broadcast();
-	start_timer();
+	start_timer(duration_ms);
 	state = 'enabled';
 	current_title = song_title;
 
-	crowd.io.sockets.emit('next_vote', song_title); // tell clients there's a new sherrif in town #fired
+	crowd.io.sockets.emit('next_vote', {title:song_title,ms:duration_ms}); // tell clients there's a new sherrif in town #fired
     }
 }
 

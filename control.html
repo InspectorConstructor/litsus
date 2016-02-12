@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>ADMIN (SUS or LIT)</title>
     <!-- style -->
-    <link rel="stylesheet" href="css/base-min.css">
-    <link rel="stylesheet" href="css/pure-min.css">
+    <!-- link rel="stylesheet" href="css/base-min.css">
+    <link  rel="stylesheet" href="css/pure-min.css" -->
     <!-- script libraries -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -56,8 +56,19 @@
 
       function start_next_vote(){
           console.log('Starting next vote with title');
-          socket.emit('next_vote', $('#song_name').val());
-          // todo message to user. $('#song_name').val());
+
+          var data={};
+          data.title = $('#song_name').val();
+          data.seconds = $('#seconds').val();
+
+          if (data.seconds == ""){
+              data.seconds = 30;
+          } else if (data.seconds < 1) {
+              // todo handle bad input;
+              return;
+          }
+
+          socket.emit('next_vote', data);
       }
 
       function do_win(){
@@ -146,12 +157,15 @@
           border: 3px solid gray;
           border-radius:7px;
           padding: 8px;
-          display:inline;
-
+          display:inline-block;
       }
 
       #buttons_div * {
           font-weight: bold;
+      }
+
+      #buttons_div div {
+      margin: 10px;
       }
 
       #song_name {
@@ -162,17 +176,27 @@
   <body class="cooper">
     <h1>litsus Admin Panel</h1>
     <div id="buttons_div">
-      <input placeholder="Song title goes here" type="text" id="song_name">
-      <button class="pure-button" id="start_vote_btn">Start Vote</button>
-      <button class="pure-button" id="send_text_btn">Fix misspelled title</button>
+	<div>
+	  <label for="song_name">Song title</label>
+	  <input placeholder="Song title goes here" type="text" id="song_name">
+	</div> 
+	<div>
+	  <label for="seconds">Vote Seconds</label>
+	  <input placeholder="Number of seconds go here" type="number" id="seconds">
+	</div>
+	<div>
+	  <button class="pure-button" id="start_vote_btn">Start Vote</button>
+	  <button class="pure-button" id="send_text_btn">Fix misspelled title</button>
+	</div>
+    </div>
+
+
       <!-- div class="old_controls">
 	<button class="pure-button" id="send_text_btn">UPDATE TRACK TEXT</button>
 	<button class="pure-button" id="enable_btn">ENABLE VOTING</button>
 	<button class="pure-button" id="disable_btn">DISABLE VOTING</button>
 	<button class="pure-button" id="reset_btn">RESET SCORE</button>
       </div -->
-    </div>
-    <br/>
     <!--div class="unused_vote controls">
       <label for="top_en">Top enable</label>
       <input type="checkbox" id="top_en" checked>
