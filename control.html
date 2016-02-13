@@ -44,7 +44,10 @@
           $('#winner').text(data.win);
 
           // catch end of voting session by detecting a winner.
-          if (data.win != "") vote_inactive();
+          if (data.win != "") { 
+              vote_inactive();
+              log_history(data.win)
+          }
       }
 
       function do_reset(){
@@ -58,8 +61,6 @@
       }
 
       function start_next_vote(){
-          console.log('Starting next vote with title');
-
           var data={};
           data.title = $('#song_name').val();
           data.seconds = $('#seconds').val();
@@ -167,6 +168,10 @@ function vote_active()
     list_enable(pre);
 }
 
+function log_history(winner)
+{
+    $('#hist_list').append('<li>' + $('#song_name').val() + ' is ' + winner + '</li>');
+}
 
       // jquery's on-ready function thinger: runs the anonymous function when 
       // the page's DOM has been initialized and readied.
@@ -227,16 +232,31 @@ function vote_active()
       .win { color: red ; font-weight: bold; }
 
       #buttons_div div {
-      margin: 10px;
+          margin: 10px;
       }
 
       #song_name {
           min-width: 250px;
       }
+
+      #votes_div {
+          border: 3px solid gray;
+          border-radius:7px;
+          padding: 8px;
+          display:inline-block;
+      }
+
+      #votes_div * {
+          margin: 10px;
+      }
+
+      /*.rootdiv { margin: 40px; }*/
+
     </style>
   </head>
   <body class="cooper">
     <h1>litsus Admin Panel</h1>
+<div class="rootdiv">
     <div id="buttons_div">
 	<div>
 	  <label for="song_name">Song title</label>
@@ -277,11 +297,22 @@ function vote_active()
       <br/>
       <button class="pure-button" id="win_btn">UPDATE WIN SEMANTICS</button>
     </div-->
+
     <div id="votes_div">
       <h2>Voting status</h2>
       <p>LIT  <span id="numlit" /> </p>
       <p>SUS  <span id="numsus" /> </p>
       <p>WIN  <span id="winner" /> </p>
+    </div>
+</div>
+
+    <div id="history">
+      <h2>Voting History</h2>
+      <ol id="hist_list">
+
+      </ol>
+      <!-- votes -->
+      <!-- <> -->
     </div>
   </body>
 </html>

@@ -201,7 +201,7 @@ control.io.on('connection', function (socket) {
 	    });
 
 	socket.on('next_vote', function (data) { // data here is just a string representing the next song title.
-		console.log("Starting next vote. song title: " + data.title + "seconds = " + data.seconds);
+		console.log("Next vote; seconds: " + data.seconds + ", song title: " + data.title); 
 		next_vote(data.title, data.seconds * 1000 + 50); // 50 is an extra moment for network lag
 	    });
 
@@ -269,15 +269,20 @@ function log_vote(ip, lit_or_sus)
 function TIE()
 {
     //todo
-    WINNER('lit'); // lit is temporary tiebreaker
+    WINNER('sus'); // sus is temporary tiebreaker
 }
 
 function WINNER(sus_or_lit)
 {
+    if (state !== 'enabled')
+	return;
+
     console.log('WINNER REACHED: ', sus_or_lit);
 
-    //tell clients who won via a winning votes message
+    // tell clients who won via a winning votes message
     broadcast_votes(sus_or_lit);
+
+    history_append(sus_or_lit);
 
     // stop counting votes
     disable();
@@ -473,13 +478,34 @@ function disable_vote_broadcast(){
     }
 }
 
+// history stuff
+var history_filename = 'history.txt';
+var logStream = fs.createWriteStream(history_filename, {'flags': 'a'});
+function history_append(sus_or_lit)
+{
+    var log_line = current_title + ' is ' + sus_or_lit + '\n';
+    logStream.write(log_line);
+}
 
-(function(){
+// kind shutdown handler
+var gracefulShutdown = function(){
+    logStream.end();
+    console.log('\nGracefully shutting down... goodbye bb \'3\'');
+    process.exit(0);
+}
+
+// listen for TERM signal .e.g. kill 
+process.on ('SIGTERM', gracefulShutdown);
+
+// listen for INT signal e.g. Ctrl-C
+process.on ('SIGINT', gracefulShutdown);  
+
+
+//(function(){
     console.log("SUS/LIT voting server is alive.");
+    console.log("Saving history to " + history_filename);
     console.log("Crowd app is on port " + crowd_port_num);
     console.log("Control app is on port " + admin_port_num);
     console.log("Voting is currently DISABLED.");
     console.log("Have an admin set a song title and enable voting.");
-})();
-
-;
+//})();
