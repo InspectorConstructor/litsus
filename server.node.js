@@ -254,11 +254,13 @@ function update_win_semantics(win_semantics_obj)
 	}
 }
 
+/***
 function set_timeout(ip)
 {
     var d = new Date();
     timeouts[ip] = d.getTime();
 }
+***/
 
 function log_vote(ip, lit_or_sus)
 {
@@ -367,9 +369,10 @@ function handle_vote(socket, data)
 
 	// vote rate limiter
 	var ip = socket.request.connection.remoteAddress;
+        var idx = timeouts.indexOf(ip);
 
 	// check if client at this ip voted this round
-	if (ip in timeouts)
+	if (idx != -1)
 	{ 
 	    var d = new Date();
 
